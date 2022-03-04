@@ -1,2 +1,6 @@
 grumphp:
-    tasks: {  }
+    tasks:
+        phpcsfixer:
+    fixer:
+        enabled: true
+        fix_by_default: false
