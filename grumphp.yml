@@ -1,6 +1,7 @@
 grumphp:
     tasks:
         phpcsfixer:
+            config: .php-cs-fixer.php
     fixer:
         enabled: true
         fix_by_default: false
