@@ -4,4 +4,4 @@ grumphp:
             config: .php-cs-fixer.php
     fixer:
         enabled: true
-        fix_by_default: false
+        fix_by_default: true
