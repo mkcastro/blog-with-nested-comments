@@ -16,7 +16,7 @@ class StoreBlogTest extends TestCase
             'body' => 'Test Body',
         ]);
 
-        $response->assertStatus(200);
+        $response->assertStatus(201);
 
         $this->assertDatabaseHas('blogs', [
             'title' => 'Test Title',
