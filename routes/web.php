@@ -1,5 +1,6 @@
 <?php
 
+use App\Actions\IndexBlog;
 use App\Actions\StoreBlog;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
@@ -25,8 +26,11 @@ Route::get('/', function () {
     ]);
 });
 
-Route::middleware(['auth:sanctum', 'verified'])->get('/dashboard', function () {
-    return Inertia::render('Dashboard');
-})->name('dashboard');
+Route::middleware(['auth:sanctum', 'verified'])->group(function () {
+    Route::get('/dashboard', function () {
+        return Inertia::render('Dashboard');
+    })->name('dashboard');
 
-Route::post('/blogs', StoreBlog::class)->name('blogs.store');
+    Route::get('/blogs', IndexBlog::class)->name('blogs.index');
+    Route::post('/blogs', StoreBlog::class)->name('blogs.store');
+});
