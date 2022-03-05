@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -11,10 +12,13 @@ class StoreBlogTest extends TestCase
 
     public function test_store_blog()
     {
-        $response = $this->postJson(route('blogs.store'), [
-            'title' => 'Test Title',
-            'body' => 'Test Body',
-        ]);
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)
+            ->postJson(route('blogs.store'), [
+                'title' => 'Test Title',
+                'body' => 'Test Body',
+            ]);
 
         $response->assertStatus(201);
 
