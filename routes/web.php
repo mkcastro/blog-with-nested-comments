@@ -1,6 +1,7 @@
 <?php
 
 use App\Actions\IndexBlog;
+use App\Actions\ShowBlog;
 use App\Actions\StoreBlog;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
@@ -32,5 +33,6 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     })->name('dashboard');
 
     Route::get('/blogs', IndexBlog::class)->name('blogs.index');
+    Route::get('/blogs/{blog}', ShowBlog::class)->name('blogs.show');
     Route::post('/blogs', StoreBlog::class)->name('blogs.store');
 });
