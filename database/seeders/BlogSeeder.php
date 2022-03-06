@@ -19,6 +19,10 @@ class BlogSeeder extends Seeder
             return false;
         }
 
+        if (Blog::count() > 0) {
+            return false;
+        }
+
         Blog::factory(10)->create();
     }
 }
