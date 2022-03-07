@@ -4,6 +4,8 @@ namespace App\Actions;
 
 use App\Exceptions\DuplicatedBlogException;
 use App\Models\Blog;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Session;
 use Lorisleiva\Actions\ActionRequest;
 use Lorisleiva\Actions\Concerns\AsAction;
 
@@ -23,8 +25,20 @@ class StoreBlog
         ]);
     }
 
-    public function asController(ActionRequest $request): Blog
+    public function asController(ActionRequest $request): RedirectResponse
     {
-        return $this->handle($request->get('title'), $request->get('body'));
+        try {
+            $blog = $this->handle($request->get('title'), $request->get('body'));
+        } catch (DuplicatedBlogException $e) {
+            Session::flash('flash.banner', $e->getMessage());
+            Session::flash('flash.bannerStyle', 'danger');
+
+            return redirect()->back();
+        }
+
+        Session::flash('flash.banner', "Blog $blog->title created successfully.");
+        Session::flash('flash.bannerStyle', 'success');
+
+        return redirect()->route('blogs.show', $blog);
     }
 }

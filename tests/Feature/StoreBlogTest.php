@@ -20,8 +20,9 @@ class StoreBlogTest extends TestCase
                 'body' => 'Test Body',
             ]);
 
-        $response->assertStatus(201);
+        $response->assertRedirect(route('blogs.show', 1));
 
+        $this->assertDatabaseCount('blogs', 1);
         $this->assertDatabaseHas('blogs', [
             'title' => 'Test Title',
             'body' => 'Test Body',
