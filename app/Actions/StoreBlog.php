@@ -4,6 +4,7 @@ namespace App\Actions;
 
 use App\Exceptions\DuplicatedBlogException;
 use App\Models\Blog;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Session;
 use Lorisleiva\Actions\ActionRequest;
@@ -13,13 +14,14 @@ class StoreBlog
 {
     use AsAction;
 
-    public function handle(string $title, string $body): Blog
+    public function handle(User $user, string $title, string $body): Blog
     {
         if (Blog::where('title', $title)->exists()) {
             return throw new DuplicatedBlogException('Blog with title "' . $title . '" already exists.');
         }
 
         return Blog::forceCreate([
+            'user_id' => $user->id,
             'title' => $title,
             'body' => $body,
         ]);
@@ -28,7 +30,11 @@ class StoreBlog
     public function asController(ActionRequest $request): RedirectResponse
     {
         try {
-            $blog = $this->handle($request->get('title'), $request->get('body'));
+            $blog = $this->handle(
+                $request->user(),
+                $request->get('title'),
+                $request->get('body')
+            );
         } catch (DuplicatedBlogException $e) {
             Session::flash('flash.banner', $e->getMessage());
             Session::flash('flash.bannerStyle', 'danger');
