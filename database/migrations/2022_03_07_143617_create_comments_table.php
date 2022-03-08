@@ -20,6 +20,7 @@ return new class extends Migration {
                 ->cascadeOnUpdate()
                 ->cascadeOnDelete();
             $table->text('body');
+            $table->morphs('commentable');
             $table->nestedSet();
             $table->timestamps();
         });
