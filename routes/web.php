@@ -4,6 +4,7 @@ use App\Actions\CreateBlog;
 use App\Actions\IndexBlog;
 use App\Actions\ShowBlog;
 use App\Actions\StoreBlog;
+use App\Actions\StoreComment;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -37,4 +38,6 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::get('/blogs/create', CreateBlog::class)->name('blogs.create');
     Route::get('/blogs/{blog}', ShowBlog::class)->name('blogs.show');
     Route::post('/blogs', StoreBlog::class)->name('blogs.store');
+
+    Route::post('/comments', StoreComment::class)->name('comments.store');
 });
