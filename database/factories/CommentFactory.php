@@ -18,8 +18,9 @@ class CommentFactory extends Factory
     public function definition()
     {
         return [
-            'blog_id' => Blog::factory(),
             'body' => $this->faker->text,
         ];
     }
+
+    // TODO: create a state where comment is commented on a blog
 }
