@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Blog;
+use App\Models\Comment;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -13,7 +14,6 @@ class StoreCommentTest extends TestCase
 
     public function test_comment_can_be_added_to_a_blog()
     {
-        $this->withoutExceptionHandling();
         $user = User::factory()->create();
         $blog = Blog::factory()->create();
 
@@ -28,13 +28,36 @@ class StoreCommentTest extends TestCase
         $this->assertDatabaseCount('blogs', 1);
         $this->assertDatabaseCount('comments', 1);
         $this->assertDatabaseHas('comments', [
-            'commentable_id' => 1,
+            'commentable_id' => $blog->id,
             'commentable_type' => 'App\Models\Blog',
             'body' => 'This is a root comment for blog #1',
         ]);
     }
 
-    // TODO: create a test that adds a comment to a comment
+    public function test_add_comment_to_comment()
+    {
+        $user = User::factory()->create();
+        $comment = Comment::factory()->for(
+            Blog::factory(),
+            'commentable'
+        )->create();
+
+        $response = $this->actingAs($user)->postJson(route('comments.store'), [
+            'commentable_id' => $comment->id,
+            'commentable_type' => 'comment',
+            'body' => 'This is a reply to comment #1',
+        ]);
+
+        $response->assertStatus(201);
+
+        $this->assertDatabaseCount('comments', 2);
+        $this->assertDatabaseHas('comments', [
+            'commentable_id' => $comment->id,
+            'commentable_type' => 'App\\Models\\Comment',
+            'body' => 'This is a reply to comment #1',
+        ]);
+    }
+
     // TODO: create a test that adds a comment to an unknown commentable type
     // TODO: create a test that adds a comment to a comment 2 layers deep
     // TODO: create a test that adds a comment to a comment 3 layers deep
