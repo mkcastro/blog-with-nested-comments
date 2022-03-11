@@ -42,7 +42,7 @@ class StoreComment
             // TODO: move to own action
             $parentComment = Comment::withDepth()->find($commentable->id);
 
-            if ($parentComment->depth > 1) {
+            if ($parentComment->depth >= 2) {
                 throw new TooDeepCommentException('Comments can only have a maximum depth of 3.');
             }
 
