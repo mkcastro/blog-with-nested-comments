@@ -38,9 +38,14 @@ class StoreComment
         }
 
         if ($commentable instanceof Comment) {
-            return $commentable->comments()->create([
+            $newComment = $commentable->comments()->create([
                 'body' => $body,
             ]);
+
+            // * we're doing this to keep track of level of nesting
+            $newComment->appendToNode($commentable)->save();
+
+            return $newComment;
         }
     }
 
