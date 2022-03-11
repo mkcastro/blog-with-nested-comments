@@ -59,6 +59,20 @@ class StoreCommentTest extends TestCase
     }
 
     // TODO: create a test that adds a comment to an unknown commentable type
+    public function test_add_comment_to_unknown_type()
+    {
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)->postJson(route('comments.store'), [
+            'commentable_id' => 1,
+            'commentable_type' => 'unknown',
+            'body' => 'This is a reply to comment #1',
+        ]);
+
+        $response->assertUnprocessable();
+        $response->assertJsonValidationErrors('commentable_type');
+    }
+
     // TODO: create a test that adds a comment to a comment 2 layers deep
     // TODO: create a test that adds a comment to a comment 3 layers deep
     // TODO: create a test that adds a comment to a comment 4 layers deep and assert it is not allowed
