@@ -133,7 +133,60 @@ class StoreCommentTest extends TestCase
         $this->assertEquals(2, $thirdComment->depth);
     }
 
-    // TODO: create a test that adds a comment to a comment 4 layers deep and assert it is not allowed
-    // TODO: make sure that comments on blogs are root comment nodes
-    // TODO: make sure that comments on comments are not root comment nodes
+    public function test_store_comment_to_a_comment_that_is_4_layers_deep()
+    {
+        $user = User::factory()->create();
+        $comment = Comment::factory()->for(
+            Blog::factory(),
+            'commentable'
+        )->create();
+
+        // TODO: use factories
+        $response = $this->actingAs($user)->postJson(route('comments.store'), [
+            'commentable_id' => $comment->id,
+            'commentable_type' => 'comment',
+            'body' => 'This is a reply to comment #1',
+        ]);
+
+        $response->assertCreated();
+        $this->assertDatabaseCount('comments', 2);
+
+        $secondComment = Comment::find(2);
+
+        $this->assertFalse($secondComment->isRoot());
+        $this->assertTrue($secondComment->isChildOf($comment));
+
+        // TODO: use factories
+        $secondResponse = $this->actingAs($user)->postJson(route('comments.store'), [
+            'commentable_id' => $secondComment->id,
+            'commentable_type' => 'comment',
+            'body' => 'This is a reply to comment #2',
+        ]);
+
+        $secondResponse->assertCreated();
+
+        $this->assertDatabaseCount('comments', 3);
+
+        $this->assertDatabaseHas('comments', [
+            'commentable_id' => $secondComment->id,
+            'commentable_type' => 'App\\Models\\Comment',
+            'body' => 'This is a reply to comment #2',
+        ]);
+
+        $thirdComment = Comment::withDepth()->find(3);
+
+        $this->assertFalse($thirdComment->isRoot());
+        $this->assertTrue($thirdComment->isChildOf($secondComment));
+        // * depth is zero based
+        $this->assertEquals(2, $thirdComment->depth);
+
+        $thirdResponse = $this->actingAs($user)->postJson(route('comments.store'), [
+            'commentable_id' => $thirdComment->id,
+            'commentable_type' => 'comment',
+            'body' => 'This is a reply to comment #3',
+        ]);
+
+        $thirdResponse->assertUnprocessable();
+        $this->assertDatabaseCount('comments', 3);
+    }
 }
