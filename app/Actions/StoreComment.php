@@ -4,6 +4,7 @@ namespace App\Actions;
 
 use App\Contracts\Commentable;
 use App\Enums\CommentableType;
+use App\Exceptions\TooDeepCommentException;
 use App\Models\Blog;
 use App\Models\Comment;
 use Illuminate\Support\Facades\Session;
@@ -30,20 +31,27 @@ class StoreComment
 
     public function handle(Commentable $commentable, string $body): Commentable
     {
-        // TODO: refactor to use match
         if ($commentable instanceof Blog) {
+            // TODO: move to own action
             return $commentable->comments()->create([
                 'body' => $body,
             ]);
         }
 
         if ($commentable instanceof Comment) {
-            $newComment = $commentable->comments()->create([
+            // TODO: move to own action
+            $parentComment = Comment::withDepth()->find($commentable->id);
+
+            if ($parentComment->depth > 1) {
+                throw new TooDeepCommentException('Comments can only have a maximum depth of 3.');
+            }
+
+            $newComment = $parentComment->comments()->create([
                 'body' => $body,
             ]);
 
             // * we're doing this to keep track of level of nesting
-            $newComment->appendToNode($commentable)->save();
+            $newComment->appendToNode($parentComment)->save();
 
             return $newComment;
         }
@@ -67,9 +75,16 @@ class StoreComment
                 return redirect()->back();
         }
 
-        return $this->handle(
-            $commentable,
-            $request->get('body')
-        );
+        try {
+            return $this->handle(
+                $commentable,
+                $request->get('body')
+            );
+        } catch (TooDeepCommentException $e) {
+            Session::flash('flash.banner', $e->getMessage());
+            Session::flash('flash.bannerStyle', 'danger');
+
+            return redirect()->back()->setStatusCode(422);
+        }
     }
 }
