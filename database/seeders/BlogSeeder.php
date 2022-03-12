@@ -23,6 +23,7 @@ class BlogSeeder extends Seeder
             return false;
         }
 
+
         Blog::factory(2)->create();
     }
 }
