@@ -2,6 +2,8 @@
 
 namespace Database\Seeders;
 
+use App\Actions\StoreComment;
+use App\Models\Blog;
 use App\Models\Comment;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\App;
@@ -19,35 +21,14 @@ class CommentSeeder extends Seeder
             return false;
         }
 
-        // TODO: use Comment::factory() instead of Comment::create()
-        Comment::create([
-            'blog_id' => 1,
-            'body' => 'This is a root comment for blog #1',
-            'children' => [
-                [
-                    'body' => 'This is the first child comment of comment #1',
-                    'children' => [
-                        [
-                            'body' => 'This is the first child comment of comment #2',
-                        ],
-                    ],
-                ],
-            ],
-        ]);
+        if (Comment::count() > 0) {
+            return false;
+        }
 
-        Comment::create([
-            'blog_id' => 2,
-            'body' => 'This is a root comment for blog #2',
-            'children' => [
-                [
-                    'body' => 'This is the first child comment of comment #4',
-                    'children' => [
-                        [
-                            'body' => 'This is the first child comment of comment #5',
-                        ],
-                    ],
-                ],
-            ],
-        ]);
+        $blog = Blog::first();
+
+        $firstComment = StoreComment::run($blog, 'This is a comment to the blog: ' . $blog->title);
+        $secondComment = StoreComment::run($firstComment, 'This is a reply to the first comment');
+        StoreComment::run($secondComment, 'This is a reply to the second comment');
     }
 }
