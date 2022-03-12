@@ -25,10 +25,10 @@ class CommentSeeder extends Seeder
             return false;
         }
 
-        $blog = Blog::first();
-
-        $firstComment = StoreComment::run($blog, 'This is a comment to the blog: ' . $blog->title);
-        $secondComment = StoreComment::run($firstComment, 'This is a reply to the first comment');
-        StoreComment::run($secondComment, 'This is a reply to the second comment');
+        foreach (Blog::all() as $blog) {
+            $firstComment = StoreComment::run($blog, 'This is a comment to the blog: ' . $blog->title);
+            $secondComment = StoreComment::run($firstComment, 'This is a reply to the first comment');
+            StoreComment::run($secondComment, 'This is a reply to the second comment');
+        }
     }
 }

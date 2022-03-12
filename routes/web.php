@@ -21,6 +21,9 @@ use Inertia\Inertia;
 */
 
 Route::get('/', function () {
+    // TODO: create landing page
+    return redirect()->route('blogs.index');
+
     return Inertia::render('Welcome', [
         'canLogin' => Route::has('login'),
         'canRegister' => Route::has('register'),
@@ -31,6 +34,9 @@ Route::get('/', function () {
 
 Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::get('/dashboard', function () {
+        // TODO: create dashboard
+        return redirect()->route('blogs.index');
+
         return Inertia::render('Dashboard');
     })->name('dashboard');
 

@@ -19,7 +19,7 @@ class BlogFactory extends Factory
     {
         return [
             'user_id' => User::factory(),
-            'title' => $this->faker->sentence,
+            'title' => $this->faker->catchPhrase,
             'body' => $this->faker->paragraph,
         ];
     }
