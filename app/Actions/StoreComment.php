@@ -25,6 +25,7 @@ class StoreComment
                 'string',
                 new Enum(CommentableType::class),
             ],
+            // TODO: show error message via Inertia
             'body' => 'required|string',
         ];
     }
@@ -76,10 +77,8 @@ class StoreComment
         }
 
         try {
-            return $this->handle(
-                $commentable,
-                $request->get('body')
-            );
+            // TODO: return with status
+            return back();
         } catch (TooDeepCommentException $e) {
             Session::flash('flash.banner', $e->getMessage());
             Session::flash('flash.bannerStyle', 'danger');

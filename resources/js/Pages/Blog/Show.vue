@@ -22,6 +22,18 @@
       <h1 v-text="blog.title"></h1>
 
       <p v-text="blog.body"></p>
+      <!-- TODO: create a component to house reply -->
+      <form @submit.prevent="submit">
+        <div>
+          <jet-label for="body" value="Leave comment on Blog" />
+          <jet-input
+            id="body"
+            type="text"
+            class="mt-1 block w-full"
+            v-model="form.body"
+          />
+        </div>
+      </form>
     </div>
   </app-layout>
 </template>
@@ -29,16 +41,34 @@
 <script>
 import { defineComponent } from "vue";
 import AppLayout from "@/Layouts/AppLayout.vue";
-import Welcome from "@/Jetstream/Welcome.vue";
+import JetInput from "@/Jetstream/Input.vue";
+import JetLabel from "@/Jetstream/Label.vue";
 
 export default defineComponent({
   components: {
     AppLayout,
-    Welcome,
+    JetInput,
+    JetLabel,
+  },
+  data() {
+    return {
+      form: this.$inertia.form({
+        commentable_id: this.$page.props.blog.id,
+        commentable_type: "blog",
+        body: "",
+      }),
+    };
   },
   computed: {
     blog() {
       return this.$page.props.blog;
+    },
+  },
+  methods: {
+    submit() {
+      this.form.post(this.route("comments.store"), {
+        onFinish: () => this.form.reset(),
+      });
     },
   },
 });
