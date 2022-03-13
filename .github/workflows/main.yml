@@ -29,8 +29,3 @@ jobs:
           touch database/database.sqlite
       - name: Format project with GrumPHP
         run: ./vendor/bin/grumphp
-      - name: Execute tests (Unit and Feature tests) via Pest
-        env:
-          DB_CONNECTION: sqlite
-          DB_DATABASE: ":memory:"
-        run: ./vendor/bin/pest -p
