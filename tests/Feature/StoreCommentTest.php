@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Actions\StoreComment;
 use App\Models\Blog;
 use App\Models\Comment;
 use App\Models\User;
@@ -18,12 +19,12 @@ class StoreCommentTest extends TestCase
         $blog = Blog::factory()->create();
 
         $response = $this->actingAs($user)->postJson(route('comments.store'), [
-            'commentable_id' => 1,
+            'commentable_id' => $blog->id,
             'commentable_type' => 'blog',
             'body' => 'This is a root comment for blog #1',
         ]);
 
-        $response->assertStatus(201);
+        $response->assertRedirect();
 
         $this->assertDatabaseCount('blogs', 1);
         $this->assertDatabaseCount('comments', 1);
@@ -53,7 +54,7 @@ class StoreCommentTest extends TestCase
             'body' => 'This is a reply to comment #1',
         ]);
 
-        $response->assertStatus(201);
+        $response->assertRedirect();
 
         $this->assertDatabaseCount('comments', 2);
         $this->assertDatabaseHas('comments', [
@@ -94,28 +95,13 @@ class StoreCommentTest extends TestCase
             'commentable'
         )->create();
 
-        // TODO: use factories
-        $response = $this->actingAs($user)->postJson(route('comments.store'), [
-            'commentable_id' => $comment->id,
-            'commentable_type' => 'comment',
-            'body' => 'This is a reply to comment #1',
-        ]);
+        $secondComment = StoreComment::run($comment, 'This is a reply to comment #1');
 
-        $response->assertCreated();
         $this->assertDatabaseCount('comments', 2);
-
-        $secondComment = Comment::find(2);
-
         $this->assertFalse($secondComment->isRoot());
         $this->assertTrue($secondComment->isChildOf($comment));
 
-        $secondResponse = $this->actingAs($user)->postJson(route('comments.store'), [
-            'commentable_id' => $secondComment->id,
-            'commentable_type' => 'comment',
-            'body' => 'This is a reply to comment #2',
-        ]);
-
-        $secondResponse->assertCreated();
+        StoreComment::run($secondComment, 'This is a reply to comment #2');
 
         $this->assertDatabaseCount('comments', 3);
 
@@ -141,29 +127,16 @@ class StoreCommentTest extends TestCase
             'commentable'
         )->create();
 
-        // TODO: use factories
-        $response = $this->actingAs($user)->postJson(route('comments.store'), [
-            'commentable_id' => $comment->id,
-            'commentable_type' => 'comment',
-            'body' => 'This is a reply to comment #1',
-        ]);
+        $secondComment = StoreComment::run(
+            $comment,
+            'This is a reply to comment #1'
+        );
 
-        $response->assertCreated();
         $this->assertDatabaseCount('comments', 2);
-
-        $secondComment = Comment::find(2);
-
         $this->assertFalse($secondComment->isRoot());
         $this->assertTrue($secondComment->isChildOf($comment));
 
-        // TODO: use factories
-        $secondResponse = $this->actingAs($user)->postJson(route('comments.store'), [
-            'commentable_id' => $secondComment->id,
-            'commentable_type' => 'comment',
-            'body' => 'This is a reply to comment #2',
-        ]);
-
-        $secondResponse->assertCreated();
+        StoreComment::run($secondComment, 'This is a reply to comment #2');
 
         $this->assertDatabaseCount('comments', 3);
 
