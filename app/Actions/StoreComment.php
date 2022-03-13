@@ -78,6 +78,8 @@ class StoreComment
 
         try {
             // TODO: return with status
+            $this->handle($commentable, $request->get('body'));
+
             return back();
         } catch (TooDeepCommentException $e) {
             Session::flash('flash.banner', $e->getMessage());
