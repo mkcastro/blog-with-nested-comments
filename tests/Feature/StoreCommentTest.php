@@ -19,6 +19,8 @@ class StoreCommentTest extends TestCase
         $blog = Blog::factory()->create();
 
         $response = $this->actingAs($user)->postJson(route('comments.store'), [
+            // ! this makes system vulnerable to any user creating comments on behalf of other users
+            'user_id' => $user->id,
             'commentable_id' => $blog->id,
             'commentable_type' => 'blog',
             'body' => 'This is a root comment for blog #1',
@@ -49,6 +51,8 @@ class StoreCommentTest extends TestCase
         )->create();
 
         $response = $this->actingAs($user)->postJson(route('comments.store'), [
+            // ! this makes system vulnerable to any user creating comments on behalf of other users
+            'user_id' => $user->id,
             'commentable_id' => $comment->id,
             'commentable_type' => 'comment',
             'body' => 'This is a reply to comment #1',
@@ -76,6 +80,8 @@ class StoreCommentTest extends TestCase
         $user = User::factory()->create();
 
         $response = $this->actingAs($user)->postJson(route('comments.store'), [
+            // ! this makes system vulnerable to any user creating comments on behalf of other users
+            'user_id' => $user->id,
             'commentable_id' => 1,
             'commentable_type' => 'unknown',
             'body' => 'This is a reply to comment #1',
@@ -95,13 +101,17 @@ class StoreCommentTest extends TestCase
             'commentable'
         )->create();
 
-        $secondComment = StoreComment::run($comment, 'This is a reply to comment #1');
+        $secondComment = StoreComment::run($user, $comment, 'This is a reply to comment #1');
 
         $this->assertDatabaseCount('comments', 2);
         $this->assertFalse($secondComment->isRoot());
         $this->assertTrue($secondComment->isChildOf($comment));
 
-        StoreComment::run($secondComment, 'This is a reply to comment #2');
+        StoreComment::run(
+            User::factory()->create(),
+            $secondComment,
+            'This is a reply to comment #2'
+        );
 
         $this->assertDatabaseCount('comments', 3);
 
@@ -128,6 +138,7 @@ class StoreCommentTest extends TestCase
         )->create();
 
         $secondComment = StoreComment::run(
+            User::factory()->create(),
             $comment,
             'This is a reply to comment #1'
         );
@@ -136,7 +147,11 @@ class StoreCommentTest extends TestCase
         $this->assertFalse($secondComment->isRoot());
         $this->assertTrue($secondComment->isChildOf($comment));
 
-        StoreComment::run($secondComment, 'This is a reply to comment #2');
+        StoreComment::run(
+            User::factory()->create(),
+            $secondComment,
+            'This is a reply to comment #2'
+        );
 
         $this->assertDatabaseCount('comments', 3);
 
@@ -154,6 +169,7 @@ class StoreCommentTest extends TestCase
         $this->assertEquals(2, $thirdComment->depth);
 
         $thirdResponse = $this->actingAs($user)->postJson(route('comments.store'), [
+            'user_id' => $user->id,
             'commentable_id' => $thirdComment->id,
             'commentable_type' => 'comment',
             'body' => 'This is a reply to comment #3',

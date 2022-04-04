@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Actions\StoreComment;
 use App\Models\Blog;
 use App\Models\Comment;
+use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\App;
 
@@ -26,9 +27,23 @@ class CommentSeeder extends Seeder
         }
 
         foreach (Blog::all() as $blog) {
-            $firstComment = StoreComment::run($blog, 'This is a comment to the blog: ' . $blog->title);
-            $secondComment = StoreComment::run($firstComment, 'This is a reply to the first comment');
-            StoreComment::run($secondComment, 'This is a reply to the second comment');
+            $firstComment = StoreComment::run(
+                User::factory()->create(),
+                $blog,
+                'This is a comment to the blog: ' . $blog->title
+            );
+
+            $secondComment = StoreComment::run(
+                User::factory()->create(),
+                $firstComment,
+                'This is a reply to the first comment'
+            );
+
+            StoreComment::run(
+                User::factory()->create(),
+                $secondComment,
+                'This is a reply to the second comment'
+            );
         }
     }
 }

@@ -68,6 +68,7 @@ export default defineComponent({
   },
 
   methods: {
+    // TODO: consider refactoring this to a helper
     isoToDate(iso) {
       // format iso to Fri, Mar 11 8:00 PM
       return new Date(iso).toLocaleString("en-US", {
