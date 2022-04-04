@@ -4,9 +4,11 @@ namespace App\Actions;
 
 use App\Contracts\Commentable;
 use App\Enums\CommentableType;
+use App\Exceptions\CommentableTypeNotFoundException;
 use App\Exceptions\TooDeepCommentException;
 use App\Models\Blog;
 use App\Models\Comment;
+use App\Models\User;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Validation\Rules\Enum;
 use Lorisleiva\Actions\ActionRequest;
@@ -19,6 +21,8 @@ class StoreComment
     public function rules(): array
     {
         return [
+            // ! this makes system vulnerable to any user creating comments on behalf of other users
+            'user_id' => 'required|exists:users,id',
             'commentable_id' => 'required|integer',
             'commentable_type' => [
                 'required',
@@ -30,12 +34,15 @@ class StoreComment
         ];
     }
 
-    public function handle(Commentable $commentable, string $body): Commentable
+    public function handle(User $user, Commentable $commentable, string $body): Commentable
     {
         if ($commentable instanceof Blog) {
             // TODO: move to own action
-            return $commentable->comments()->create([
+            return Comment::forceCreate([
+                'user_id' => $user->id,
                 'body' => $body,
+                'commentable_type' => Blog::class,
+                'commentable_id' => $commentable->id,
             ]);
         }
 
@@ -43,12 +50,16 @@ class StoreComment
             // TODO: move to own action
             $parentComment = Comment::withDepth()->find($commentable->id);
 
+            // * depth is zero based
             if ($parentComment->depth >= 2) {
                 throw new TooDeepCommentException('Comments can only have a maximum depth of 3.');
             }
 
-            $newComment = $parentComment->comments()->create([
+            $newComment = Comment::forceCreate([
+                'user_id' => $user->id,
                 'body' => $body,
+                'commentable_type' => Comment::class,
+                'commentable_id' => $parentComment->id,
             ]);
 
             // * we're doing this to keep track of level of nesting
@@ -56,6 +67,8 @@ class StoreComment
 
             return $newComment;
         }
+
+        throw new CommentableTypeNotFoundException('Commentable type not found.');
     }
 
     public function asController(ActionRequest $request)
@@ -76,9 +89,12 @@ class StoreComment
                 return redirect()->back();
         }
 
+        // ! this makes system vulnerable to any user creating comments on behalf of other users
+        $user = User::findOrFail($request->get('user_id'));
+
         try {
             // TODO: return with status
-            $this->handle($commentable, $request->get('body'));
+            $this->handle($user, $commentable, $request->get('body'));
 
             return back();
         } catch (TooDeepCommentException $e) {

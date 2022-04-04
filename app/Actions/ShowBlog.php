@@ -12,7 +12,7 @@ class ShowBlog
 
     public function handle(Blog $blog): Blog
     {
-        return $blog;
+        return $blog->with('comments.user')->findOrFail($blog->id);
     }
 
     public function asController(Blog $blog)
